@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/Gaia.Api/Gaia.Api.csproj" />
+    <Project Path="backend/Gaia.Application/Gaia.Application.csproj" />
+    <Project Path="backend/Gaia.Domain/Gaia.Domain.csproj" />
+    <Project Path="backend/Gaia.Infrastructure/Gaia.Infrastructure.csproj" />
+    <Project Path="backend/Gaia.Tests/Gaia.Tests.csproj" />
+  </Folder>
+</Solution>
