@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Gaia.Application\Gaia.Application.csproj" />
     <ProjectReference Include="..\Gaia.Infrastructure\Gaia.Infrastructure.csproj" />
+    <ProjectReference Include="..\Gaia.Domain\Gaia.Domain.csproj" />
   </ItemGroup>
 
 </Project>
