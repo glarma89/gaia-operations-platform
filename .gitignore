@@ -1,0 +1,33 @@
+
+# .NET
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# Frontend
+**/node_modules/
+**/dist/
+**/coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local database
+*.mdf
+*.ldf
