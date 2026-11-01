@@ -29,3 +29,63 @@
 .app-content h2 {
   margin-top: 0;
 }
+
+
+.operation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.operation-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 20px;
+  text-align: left;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.operation-card:hover {
+  border-color: #0d9488;
+}
+
+.operation-card.selected {
+  border-color: #0d9488;
+  background: #f0fdfa;
+}
+
+.operation-card strong {
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.operation-card span {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.selection-info {
+  margin-top: 24px;
+  color: #475569;
+}
+
+.error-message {
+  padding: 12px 16px;
+  color: #991b1b;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .operation-grid {
+    grid-template-columns: 1fr;
+  }
+}
