@@ -3,6 +3,7 @@ import { getOperations } from "./api/operationsApi";
 import { OperationSelector } from "./components/OperationSelector";
 import type { OperationDefinition } from "./types/operations";
 import { OperationForm } from "./components/OperationForm";
+import { OperationHistory } from "./components/OperationHistory";
 import "./App.css";
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
   const [selectedOperationId, setSelectedOperationId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   useEffect(() => {
     let isActive = true;
@@ -82,10 +84,21 @@ function App() {
             />
 
             {selectedOperation && (
-              <OperationForm
-                key={selectedOperation.id}
-                operation={selectedOperation}
-              />
+              <>
+                <OperationForm
+                  key={`form-${selectedOperation.id}`}
+                  operation={selectedOperation}
+                  onExecutionSuccess={() => {
+                    setHistoryRefreshKey((current) => current + 1);
+                  }}
+                />
+
+                <OperationHistory
+                  key={`history-${selectedOperation.id}`}
+                  operationId={selectedOperation.id}
+                  refreshKey={historyRefreshKey}
+                />
+              </>
             )}
 
             <p className="selection-info">

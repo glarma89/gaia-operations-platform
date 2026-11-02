@@ -6,16 +6,185 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Gaia.Tests.Integration;
 
+[Collection("DatabaseIntegration")]
 public sealed class OperationsApiTests
-    : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
 
     public OperationsApiTests(
-        WebApplicationFactory<Program> factory)
+    GaiaApiFactory factory)
     {
         _client = factory.CreateClient();
     }
+
+
+    [Fact]
+    public async Task GetHistory_MonthlyCount_IncludesAllExecutions()
+    {
+        // Arrange
+        for (int i = 1; i <= 5; i++)
+        {
+            var request = new
+            {
+                operationId = "divide",
+                inputA = (i * 10).ToString(),
+                inputB = "2"
+            };
+
+            var response = await _client.PostAsJsonAsync(
+                "/api/operations/execute",
+                request);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        // Act
+        var historyResponse = await _client.GetAsync(
+            "/api/operations/divide/history");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
+
+        using var document = JsonDocument.Parse(
+            await historyResponse.Content.ReadAsStringAsync());
+
+        var root = document.RootElement;
+
+        Assert.Equal(
+            "divide",
+            root.GetProperty("operationId").GetString());
+
+        Assert.Equal(
+            3,
+            root.GetProperty("latestExecutions").GetArrayLength());
+
+        Assert.Equal(
+            5,
+            root.GetProperty("monthlyCount").GetInt32());
+    }
+
+
+    [Fact]
+    public async Task GetHistory_FiltersByOperationType()
+    {
+        // Arrange
+        var concatRequest = new
+        {
+            operationId = "concat",
+            inputA = "Filter",
+            inputB = "Test"
+        };
+
+        var equalsRequest = new
+        {
+            operationId = "equals",
+            inputA = "10",
+            inputB = "10"
+        };
+
+        var concatResponse = await _client.PostAsJsonAsync(
+            "/api/operations/execute",
+            concatRequest);
+
+        var equalsResponse = await _client.PostAsJsonAsync(
+            "/api/operations/execute",
+            equalsRequest);
+
+        Assert.Equal(HttpStatusCode.OK, concatResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, equalsResponse.StatusCode);
+
+        // Act
+        var historyResponse = await _client.GetAsync(
+            "/api/operations/concat/history");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
+
+        using var document = JsonDocument.Parse(
+            await historyResponse.Content.ReadAsStringAsync());
+
+        var root = document.RootElement;
+
+        Assert.Equal(
+            "concat",
+            root.GetProperty("operationId").GetString());
+
+        var executions = root.GetProperty("latestExecutions");
+
+        Assert.Contains(
+            executions.EnumerateArray(),
+            x => x.GetProperty("inputA").GetString() == "Filter"
+                && x.GetProperty("inputB").GetString() == "Test");
+
+        Assert.DoesNotContain(
+            executions.EnumerateArray(),
+            x => x.GetProperty("inputA").GetString() == "10"
+                && x.GetProperty("inputB").GetString() == "10");
+    }
+
+
+    [Fact]
+    public async Task GetHistory_MoreThanThreeExecutions_ReturnsOnlyThree()
+    {
+        // Arrange
+        for (int i = 1; i <= 5; i++)
+        {
+            var request = new
+            {
+                operationId = "subtract",
+                inputA = i.ToString(),
+                inputB = "1"
+            };
+
+            var response = await _client.PostAsJsonAsync(
+                "/api/operations/execute",
+                request);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        // Act
+        var historyResponse = await _client.GetAsync(
+            "/api/operations/subtract/history");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
+
+        using var document = JsonDocument.Parse(
+            await historyResponse.Content.ReadAsStringAsync());
+
+        var root = document.RootElement;
+        var executions = root.GetProperty("latestExecutions");
+
+        Assert.Equal(3, executions.GetArrayLength());
+
+        Assert.Equal(
+            "5",
+            executions[0].GetProperty("inputA").GetString());
+
+        Assert.Equal(
+            "4",
+            executions[1].GetProperty("inputA").GetString());
+
+        Assert.Equal(
+            "3",
+            executions[2].GetProperty("inputA").GetString());
+    }
+
+
+    [Fact]
+    public async Task GetHistory_UnknownOperation_ReturnsNotFound()
+    {
+        // Act
+        var response = await _client.GetAsync(
+            "/api/operations/unknown/history");
+
+        // Assert
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            response.StatusCode);
+    }
+
 
     [Fact]
     public async Task GetOperations_ReturnsSixOperations()
@@ -182,6 +351,64 @@ public sealed class OperationsApiTests
             HttpStatusCode.BadRequest,
             response.StatusCode);
     }
+
+
+    [Fact]
+    public async Task GetHistory_AfterExecute_ReturnsExecutionAndMonthlyCount()
+    {
+        // Arrange
+        var request = new
+        {
+            operationId = "multiply",
+            inputA = "8",
+            inputB = "9"
+        };
+
+        // Act
+        var executeResponse = await _client.PostAsJsonAsync(
+            "/api/operations/execute",
+            request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, executeResponse.StatusCode);
+
+        var historyResponse = await _client.GetAsync(
+            "/api/operations/multiply/history");
+
+        Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
+
+        using var document = JsonDocument.Parse(
+            await historyResponse.Content.ReadAsStringAsync());
+
+        var root = document.RootElement;
+
+        Assert.Equal(
+            "multiply",
+            root.GetProperty("operationId").GetString());
+
+        var executions = root.GetProperty("latestExecutions");
+
+        Assert.True(executions.GetArrayLength() >= 1);
+        Assert.True(executions.GetArrayLength() <= 3);
+
+        var latest = executions[0];
+
+        Assert.Equal(
+            "8",
+            latest.GetProperty("inputA").GetString());
+
+        Assert.Equal(
+            "9",
+            latest.GetProperty("inputB").GetString());
+
+        Assert.Equal(
+            72,
+            latest.GetProperty("result").GetInt32());
+
+        Assert.True(
+            root.GetProperty("monthlyCount").GetInt32() >= 1);
+    }
+
 
     private sealed class OperationDto
     {

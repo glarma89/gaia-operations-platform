@@ -4,6 +4,7 @@ using Gaia.Api.ExceptionHandling;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOperationEngine();
+builder.Services.AddGaiaPersistence(builder.Configuration);
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers();

@@ -3,7 +3,8 @@ import type {
   ApiProblem,
   ExecuteOperationRequest,
   OperationDefinition,
-  OperationResult,
+  OperationHistoryResponse,
+  OperationResult
 } from '../types/operations'
 
 const API_BASE_URL = '/api/operations'
@@ -55,4 +56,15 @@ export async function executeOperation(
   })
 
   return handleResponse<OperationResult>(response)
+}
+
+
+export async function getOperationHistory(
+  operationId: string,
+): Promise<OperationHistoryResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/${encodeURIComponent(operationId)}/history`,
+  )
+
+  return handleResponse<OperationHistoryResponse>(response)
 }

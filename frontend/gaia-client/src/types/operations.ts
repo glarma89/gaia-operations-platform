@@ -24,3 +24,16 @@ export interface ApiProblem {
   detail?: string
   instance?: string
 }
+
+export interface OperationHistoryItem {
+  inputA: string
+  inputB: string
+  result: number | string | boolean
+  executedAtUtc: string
+}
+
+export interface OperationHistoryResponse {
+  operationId: string
+  latestExecutions: OperationHistoryItem[]
+  monthlyCount: number
+}
