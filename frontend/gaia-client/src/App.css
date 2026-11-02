@@ -89,3 +89,52 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.operation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.operation-form h3 {
+  margin: 0;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.operation-form button {
+  padding: 12px 20px;
+  color: white;
+  background: #0d9488;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.operation-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.result-box {
+  padding: 16px;
+  background: #f0fdfa;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}

@@ -1,51 +1,53 @@
-
-import { useEffect, useState } from 'react'
-import { getOperations } from './api/operationsApi'
-import { OperationSelector } from './components/OperationSelector'
-import type { OperationDefinition } from './types/operations'
-import './App.css'
+import { useEffect, useState } from "react";
+import { getOperations } from "./api/operationsApi";
+import { OperationSelector } from "./components/OperationSelector";
+import type { OperationDefinition } from "./types/operations";
+import { OperationForm } from "./components/OperationForm";
+import "./App.css";
 
 function App() {
-  const [operations, setOperations] = useState<OperationDefinition[]>([])
-  const [selectedOperationId, setSelectedOperationId] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [operations, setOperations] = useState<OperationDefinition[]>([]);
+  const [selectedOperationId, setSelectedOperationId] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isActive = true
+    let isActive = true;
 
     async function loadOperations() {
       try {
-        const data = await getOperations()
+        const data = await getOperations();
 
-        if (!isActive) return
+        if (!isActive) return;
 
-        setOperations(data)
+        setOperations(data);
 
         if (data.length > 0) {
-          setSelectedOperationId(data[0].id)
+          setSelectedOperationId(data[0].id);
         }
       } catch (err) {
-        if (!isActive) return
+        if (!isActive) return;
 
         setError(
-          err instanceof Error
-            ? err.message
-            : 'Failed to load operations.',
-        )
+          err instanceof Error ? err.message : "Failed to load operations.",
+        );
       } finally {
         if (isActive) {
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
     }
 
-    void loadOperations()
+    void loadOperations();
 
     return () => {
-      isActive = false
-    }
-  }, [])
+      isActive = false;
+    };
+  }, []);
+
+  const selectedOperation = operations.find(
+    (operation) => operation.id === selectedOperationId,
+  );
 
   return (
     <main className="app">
@@ -79,6 +81,13 @@ function App() {
               onSelect={setSelectedOperationId}
             />
 
+            {selectedOperation && (
+              <OperationForm
+                key={selectedOperation.id}
+                operation={selectedOperation}
+              />
+            )}
+
             <p className="selection-info">
               Selected operation: <strong>{selectedOperationId}</strong>
             </p>
@@ -86,7 +95,7 @@ function App() {
         )}
       </section>
     </main>
-  )
+  );
 }
 
-export default App
+export default App;
