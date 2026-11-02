@@ -1,7 +1,10 @@
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { executeOperation } from '../api/operationsApi'
-import type { OperationDefinition, OperationResult } from '../types/operations'
+import type {
+  OperationDefinition,
+  OperationResult,
+} from '../types/operations'
 
 interface OperationFormProps {
   operation: OperationDefinition
@@ -14,8 +17,38 @@ export function OperationForm({ operation }: OperationFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
 
+  const requestId = useRef(0)
+
+  const isNumeric = operation.inputType === 'number'
+
+  function clearFeedback() {
+    requestId.current += 1
+    setResult(null)
+    setError(null)
+    setIsExecuting(false)
+  }
+
+  function handleInputAChange(value: string) {
+    setInputA(value)
+    clearFeedback()
+  }
+
+  function handleInputBChange(value: string) {
+    setInputB(value)
+    clearFeedback()
+  }
+
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    if (isExecuting) return
+
+    if (isNumeric && (!inputA.trim() || !inputB.trim())) {
+      setError('Both numeric values are required.')
+      return
+    }
+
+    const currentRequestId = ++requestId.current
 
     setIsExecuting(true)
     setError(null)
@@ -28,61 +61,79 @@ export function OperationForm({ operation }: OperationFormProps) {
         inputB,
       })
 
-      setResult(data)
+      if (currentRequestId === requestId.current) {
+        setResult(data)
+      }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to execute operation.',
-      )
+      if (currentRequestId === requestId.current) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Failed to execute operation.',
+        )
+      }
     } finally {
-      setIsExecuting(false)
+      if (currentRequestId === requestId.current) {
+        setIsExecuting(false)
+      }
     }
   }
 
-  const isNumeric = operation.inputType === 'number'
-
   return (
     <form className="operation-form" onSubmit={handleSubmit}>
-      <h3>Execute: {operation.name}</h3>
-
-      <div className="input-group">
-        <label htmlFor="input-a">First value</label>
-        <input
-          id="input-a"
-          type={isNumeric ? 'number' : 'text'}
-          step={isNumeric ? 'any' : undefined}
-          value={inputA}
-          onChange={(event) => setInputA(event.target.value)}
-          required={isNumeric}
-        />
+      <div className="form-heading">
+        <h3>Execute operation</h3>
+        <p>{operation.name}</p>
       </div>
 
-      <div className="input-group">
-        <label htmlFor="input-b">Second value</label>
-        <input
-          id="input-b"
-          type={isNumeric ? 'number' : 'text'}
-          step={isNumeric ? 'any' : undefined}
-          value={inputB}
-          onChange={(event) => setInputB(event.target.value)}
-          required={isNumeric}
-        />
+      <div className="form-inputs">
+        <div className="input-group">
+          <label htmlFor="input-a">First value</label>
+          <input
+            id="input-a"
+            type={isNumeric ? 'number' : 'text'}
+            step={isNumeric ? 'any' : undefined}
+            value={inputA}
+            onChange={(event) => handleInputAChange(event.target.value)}
+            required={isNumeric}
+            placeholder={isNumeric ? 'Enter a number' : 'Enter text'}
+          />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="input-b">Second value</label>
+          <input
+            id="input-b"
+            type={isNumeric ? 'number' : 'text'}
+            step={isNumeric ? 'any' : undefined}
+            value={inputB}
+            onChange={(event) => handleInputBChange(event.target.value)}
+            required={isNumeric}
+            placeholder={isNumeric ? 'Enter a number' : 'Enter text'}
+          />
+        </div>
       </div>
 
-      <button type="submit" disabled={isExecuting}>
-        {isExecuting ? 'Executing...' : 'Execute'}
+      <button
+        className="execute-button"
+        type="submit"
+        disabled={isExecuting}
+      >
+        {isExecuting ? 'Executing...' : 'Execute operation'}
       </button>
 
       {error && (
-        <p className="error-message" role="alert">
+        <div className="error-message" role="alert">
           {error}
-        </p>
+        </div>
       )}
 
       {result && (
         <div className="result-box" role="status">
-          <strong>Result:</strong> {String(result.value)}
+          <span className="result-label">Result</span>
+          <strong className="result-value">
+            {String(result.value)}
+          </strong>
         </div>
       )}
     </form>
