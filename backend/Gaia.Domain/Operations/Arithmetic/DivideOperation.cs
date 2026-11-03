@@ -26,8 +26,18 @@ public sealed class DivideOperation : IOperation
                 "Division by zero is not allowed.");
         }
 
-        decimal result = a / b;
 
-        return new OperationResult(Definition.Id, result);
+        try
+        {
+            decimal result = a / b;
+
+            return new OperationResult(Definition.Id, result);
+        }
+        catch (OverflowException)
+        {
+            throw new OperationValidationException(
+                "The result exceeds the supported numeric range.");
+        }
+
     }
 }

@@ -73,4 +73,60 @@ public class ArithmeticOperationTests
 
         Assert.Equal(0.3m, result.Value);
     }
+
+
+    [Fact]
+    public void Add_Overflow_ThrowsValidationException()
+    {
+        var operation = new AddOperation();
+
+        Assert.Throws<OperationValidationException>(
+            () => operation.Execute(
+                decimal.MaxValue.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture),
+                "1"));
+    }
+
+
+    [Fact]
+    public void Subtract_Overflow_ThrowsValidationException()
+    {
+        var operation = new SubtractOperation();
+
+        Assert.Throws<OperationValidationException>(
+            () => operation.Execute(
+                decimal.MinValue.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture),
+                "1"));
+    }
+
+
+    [Fact]
+    public void Multiply_Overflow_ThrowsValidationException()
+    {
+        var operation = new MultiplyOperation();
+
+        Assert.Throws<OperationValidationException>(
+            () => operation.Execute(
+                decimal.MaxValue.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture),
+                "2"));
+    }
+
+
+    [Fact]
+    public void Divide_Overflow_ThrowsValidationException()
+    {
+        var operation = new DivideOperation();
+
+        Assert.Throws<OperationValidationException>(
+            () => operation.Execute(
+                decimal.MaxValue.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture),
+                "0.1"));
+    }
+
+
+
+
 }
